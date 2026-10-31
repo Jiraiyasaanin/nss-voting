@@ -138,7 +138,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     await fetchCurrentUser();
   };
 
-  const isAdmin = user?.role === 'ADMIN' || user?.role === 'ELECTION_OFFICER';
+  const isAdmin = user?.role === 'ADMIN';
   const isOfficer = user?.role === 'ELECTION_OFFICER';
   const isVoter = user?.role === 'VOTER';
 

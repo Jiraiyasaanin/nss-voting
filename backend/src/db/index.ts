@@ -27,6 +27,17 @@ export function initDatabase(): void {
 
   const schemaSql = fs.readFileSync(foundPath, 'utf-8');
   db.exec(schemaSql);
+
+  // Safe schema migrations for existing databases
+  try {
+    db.exec(`ALTER TABLE users ADD COLUMN rejection_reason TEXT;`);
+  } catch (_e) {}
+  try {
+    db.exec(`ALTER TABLE users ADD COLUMN verified_by TEXT;`);
+  } catch (_e) {}
+  try {
+    db.exec(`ALTER TABLE users ADD COLUMN verified_at DATETIME;`);
+  } catch (_e) {}
 }
 
 export function closeDatabase(): void {

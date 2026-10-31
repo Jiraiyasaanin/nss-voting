@@ -33,6 +33,7 @@ describe('NSS Biometric Digital Voting Platform - Automated Test Suite', () => {
       expect(res.status).toBe(201);
       expect(res.body).toHaveProperty('token');
       expect(res.body.user.student_id).toBe('NSS-2026-IT-999');
+      expect(res.body.user.is_verified).toBe(0); // Defaults to pending officer review
     });
 
     it('should strictly reject duplicate registration with the same Student ID', async () => {
@@ -268,6 +269,95 @@ describe('NSS Biometric Digital Voting Platform - Automated Test Suite', () => {
       // Verify winner flag exists
       const winner = res.body.results.candidateResults.find((c: any) => c.isWinner);
       expect(winner).toBeDefined();
+    });
+  });
+
+  // 7. Identity Manager Officer Workflow & Voter Approval
+  describe('7. Election Officer Identity Verification & Fraud Prevention', () => {
+    let officerToken: string;
+    let pendingVoterToken: string;
+    let pendingVoterId: string;
+
+    beforeAll(async () => {
+      // Login Officer
+      const offRes = await request(app)
+        .post('/api/auth/login')
+        .send({ identifier: 'officer@nss.edu', password: 'Officer@2026' });
+      expect(offRes.status).toBe(200);
+      officerToken = offRes.body.token;
+
+      // Login Pending Student (Kabir Singh - NSS-2026-CE-005)
+      const vRes = await request(app)
+        .post('/api/auth/login')
+        .send({ identifier: 'NSS-2026-CE-005', password: 'Voter@123' });
+      expect(vRes.status).toBe(200);
+      expect(vRes.body.user.is_verified).toBe(0);
+      pendingVoterToken = vRes.body.token;
+      pendingVoterId = vRes.body.user.id;
+    });
+
+    it('should strictly BLOCK unverified voter from requesting ballot unlock challenge', async () => {
+      const res = await request(app)
+        .post('/api/ballots/unlock-challenge')
+        .set('Authorization', `Bearer ${pendingVoterToken}`)
+        .send({ electionId: activeElectionId });
+
+      expect(res.status).toBe(403);
+      expect(res.body.error).toMatch(/awaiting identity verification/i);
+    });
+
+    it('should allow officer to fetch identity statistics with pending counts', async () => {
+      const res = await request(app)
+        .get('/api/officer/stats')
+        .set('Authorization', `Bearer ${officerToken}`);
+
+      expect(res.status).toBe(200);
+      expect(res.body.pendingCount).toBeGreaterThanOrEqual(1);
+      expect(res.body).toHaveProperty('departmentStats');
+    });
+
+    it('should allow officer to query pending voters queue', async () => {
+      const res = await request(app)
+        .get('/api/officer/voters?status=pending')
+        .set('Authorization', `Bearer ${officerToken}`);
+
+      expect(res.status).toBe(200);
+      expect(res.body.voters.length).toBeGreaterThanOrEqual(1);
+      const kabir = res.body.voters.find((v: any) => v.id === pendingVoterId);
+      expect(kabir).toBeDefined();
+      expect(kabir.is_verified).toBe(0);
+    });
+
+    it('should allow officer to approve and certify a pending voter', async () => {
+      const res = await request(app)
+        .post(`/api/officer/verify-voter/${pendingVoterId}`)
+        .set('Authorization', `Bearer ${officerToken}`);
+
+      expect(res.status).toBe(200);
+      expect(res.body.voter.is_verified).toBe(1);
+      expect(res.body.voter.verified_by_name).toContain('Meenakshi');
+    });
+
+    it('should allow officer to reject a fraudulent voter with an explanatory reason', async () => {
+      // Find Ishaan Gupta
+      const pendingRow = db.prepare(`SELECT id FROM users WHERE student_id = 'NSS-2026-CS-006'`).get() as { id: string };
+
+      const res = await request(app)
+        .post(`/api/officer/reject-voter/${pendingRow.id}`)
+        .set('Authorization', `Bearer ${officerToken}`)
+        .send({ reason: 'Student ID not matching College Registry roll list' });
+
+      expect(res.status).toBe(200);
+      expect(res.body.voter.is_verified).toBe(-1);
+      expect(res.body.voter.rejection_reason).toContain('not matching College Registry');
+    });
+
+    it('should reject non-officer voters from accessing officer endpoints', async () => {
+      const res = await request(app)
+        .get('/api/officer/stats')
+        .set('Authorization', `Bearer ${voterToken}`);
+
+      expect(res.status).toBe(403);
     });
   });
 });

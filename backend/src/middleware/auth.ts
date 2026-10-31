@@ -20,7 +20,7 @@ export function authenticateToken(req: AuthenticatedRequest, res: Response, next
   try {
     const decoded = jwt.verify(token, config.JWT_SECRET) as { userId: string };
     const userRow = db.prepare(`
-      SELECT id, student_id, email, full_name, department, batch_year, role, is_active, is_verified, created_at, updated_at
+      SELECT id, student_id, email, full_name, department, batch_year, role, is_active, is_verified, rejection_reason, verified_by, verified_at, created_at, updated_at
       FROM users WHERE id = ?
     `).get(decoded.userId) as SafeUser | undefined;
 
@@ -59,7 +59,8 @@ export function requireRole(...allowedRoles: UserRole[]) {
   };
 }
 
-export const requireAdmin = requireRole('ADMIN', 'ELECTION_OFFICER');
+export const requireAdmin = requireRole('ADMIN');
+export const requireOfficer = requireRole('ELECTION_OFFICER', 'ADMIN');
 export const requireSuperAdmin = requireRole('ADMIN');
 export const requireVoter = requireRole('VOTER');
 

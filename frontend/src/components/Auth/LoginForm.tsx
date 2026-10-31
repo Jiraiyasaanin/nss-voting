@@ -161,13 +161,27 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToRegister, onOpen
             <Sparkles className="w-3.5 h-3.5 text-amber-500" />
             <span>Quick Demo Fast-Fill:</span>
           </p>
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
             <button
               type="button"
               onClick={() => fillDemoAccount('NSS-2026-CS-001', 'Voter@123')}
               className="px-2 py-1.5 bg-stone-100 hover:bg-orange-50 hover:text-orange-900 hover:border-orange-200 border border-stone-200 rounded-lg text-[10px] font-semibold text-stone-700 transition cursor-pointer text-center"
             >
-              🧑‍🎓 Student Voter
+              🧑‍🎓 Verified Voter
+            </button>
+            <button
+              type="button"
+              onClick={() => fillDemoAccount('NSS-2026-EE-004', 'Voter@123')}
+              className="px-2 py-1.5 bg-stone-100 hover:bg-amber-50 hover:text-amber-900 hover:border-amber-200 border border-stone-200 rounded-lg text-[10px] font-semibold text-stone-700 transition cursor-pointer text-center"
+            >
+              ⏳ Pending Voter
+            </button>
+            <button
+              type="button"
+              onClick={() => fillDemoAccount('officer@nss.edu', 'Officer@2026')}
+              className="px-2 py-1.5 bg-stone-100 hover:bg-emerald-50 hover:text-emerald-900 hover:border-emerald-200 border border-stone-200 rounded-lg text-[10px] font-semibold text-stone-700 transition cursor-pointer text-center"
+            >
+              🛡️ Officer Desk
             </button>
             <button
               type="button"
@@ -175,13 +189,6 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSwitchToRegister, onOpen
               className="px-2 py-1.5 bg-stone-100 hover:bg-blue-50 hover:text-blue-900 hover:border-blue-200 border border-stone-200 rounded-lg text-[10px] font-semibold text-stone-700 transition cursor-pointer text-center"
             >
               🏛️ Chief Admin
-            </button>
-            <button
-              type="button"
-              onClick={() => fillDemoAccount('officer@nss.edu', 'Officer@2026')}
-              className="px-2 py-1.5 bg-stone-100 hover:bg-emerald-50 hover:text-emerald-900 hover:border-emerald-200 border border-stone-200 rounded-lg text-[10px] font-semibold text-stone-700 transition cursor-pointer text-center"
-            >
-              📋 Officer
             </button>
           </div>
         </div>

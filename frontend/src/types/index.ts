@@ -9,9 +9,45 @@ export interface User {
   batch_year: number;
   role: UserRole;
   is_active: number;
-  is_verified: number;
+  is_verified: number; // 0 = Pending Officer Approval, 1 = Approved & Certified, -1 = Rejected/Flagged
+  rejection_reason?: string | null;
+  verified_by?: string | null;
+  verified_at?: string | null;
   created_at: string;
   updated_at: string;
+}
+
+export interface OfficerStats {
+  pendingCount: number;
+  verifiedCount: number;
+  rejectedCount: number;
+  totalCount: number;
+  departmentStats: Array<{
+    department: string;
+    pending: number;
+    verified: number;
+    rejected: number;
+    total: number;
+  }>;
+}
+
+export interface VoterVerificationRecord {
+  id: string;
+  student_id: string;
+  email: string;
+  full_name: string;
+  department: string;
+  batch_year: number;
+  role: string;
+  is_active: number;
+  is_verified: number;
+  rejection_reason?: string | null;
+  verified_by?: string | null;
+  verified_by_name?: string | null;
+  verified_at?: string | null;
+  created_at: string;
+  updated_at: string;
+  biometric_count: number;
 }
 
 export interface WebAuthnCredentialSummary {

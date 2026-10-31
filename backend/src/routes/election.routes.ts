@@ -83,7 +83,7 @@ export function checkVoterEligibility(voter: { id: string; department: string },
 // 1. List Elections
 electionRouter.get('/', authenticateToken, (req: AuthenticatedRequest, res: Response) => {
   const user = req.user!;
-  const isAdmin = user.role === 'ADMIN' || user.role === 'ELECTION_OFFICER';
+  const isAdmin = user.role === 'ADMIN';
 
   let elections: (Election & { candidateCount?: number; totalVotes?: number; hasVoted?: boolean; isEligible?: boolean })[];
 
@@ -129,7 +129,7 @@ electionRouter.get('/', authenticateToken, (req: AuthenticatedRequest, res: Resp
 electionRouter.get('/:id', authenticateToken, (req: AuthenticatedRequest, res: Response) => {
   const { id } = req.params;
   const user = req.user!;
-  const isAdmin = user.role === 'ADMIN' || user.role === 'ELECTION_OFFICER';
+  const isAdmin = user.role === 'ADMIN';
 
   const election = db.prepare(`SELECT * FROM elections WHERE id = ?`).get(id) as Election | undefined;
   if (!election) {

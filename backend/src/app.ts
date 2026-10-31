@@ -9,6 +9,7 @@ import { ballotRouter } from './routes/ballot.routes.js';
 import { voterRouter } from './routes/voter.routes.js';
 import { resultsRouter } from './routes/results.routes.js';
 import { auditRouter } from './routes/audit.routes.js';
+import { officerRouter } from './routes/officer.routes.js';
 
 export function createApp(): Express {
   const app = express();
@@ -68,6 +69,7 @@ export function createApp(): Express {
   app.use('/api/voters', voterRouter);
   app.use('/api/results', resultsRouter);
   app.use('/api/audit-logs', auditRouter);
+  app.use('/api/officer', officerRouter);
 
   // Global Error Handler
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {

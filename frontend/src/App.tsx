@@ -7,12 +7,14 @@ import { BiometricEnrollModal } from './components/Auth/BiometricEnrollModal.js'
 import { AccountRecoveryModal } from './components/Auth/AccountRecoveryModal.js';
 import { VoterDashboard } from './components/VoterPortal/VoterDashboard.js';
 import { AdminPortal } from './components/AdminPortal/AdminPortal.js';
+import { OfficerPortal } from './components/OfficerPortal/OfficerPortal.js';
+import { VerificationPendingView } from './components/VoterPortal/VerificationPendingView.js';
 import { ResultsViewModal } from './components/VoterPortal/ResultsViewModal.js';
 
 const MainApp: React.FC = () => {
-  const { user, isAdmin, isLoading } = useAuth();
+  const { user, isAdmin, isOfficer, isLoading, refreshUser, logout } = useAuth();
   const [authView, setAuthView] = useState<'login' | 'register'>('login');
-  const [activePortalView, setActivePortalView] = useState<'voter' | 'admin'>('voter');
+  const [activePortalView, setActivePortalView] = useState<'voter' | 'admin' | 'officer'>('voter');
 
   // Global modals
   const [bioEnrollOpen, setBioEnrollOpen] = useState(false);
@@ -48,8 +50,7 @@ const MainApp: React.FC = () => {
             <RegisterForm
               onSwitchToLogin={() => setAuthView('login')}
               onSuccess={() => {
-                setAuthView('login');
-                setBioEnrollOpen(true);
+                // When register succeeds, user session is active and defaults to pending verification view
               }}
             />
           )}
@@ -84,13 +85,35 @@ const MainApp: React.FC = () => {
         />
 
         <main className="pb-12">
-          {activePortalView === 'admin' && isAdmin ? (
-            <AdminPortal />
+          {/* 1. Election Officer: Exclusively focused on student identity validation */}
+          {user.role === 'ELECTION_OFFICER' ? (
+            <OfficerPortal />
+          ) : user.role === 'ADMIN' ? (
+            /* 2. Admin: Can navigate between Admin HQ, Officer Desk, and Voter view */
+            activePortalView === 'officer' ? (
+              <OfficerPortal />
+            ) : activePortalView === 'admin' ? (
+              <AdminPortal />
+            ) : (
+              <VoterDashboard
+                onOpenBiometricEnroll={() => setBioEnrollOpen(true)}
+                onViewResults={(electionId) => setResultsModalElectionId(electionId)}
+              />
+            )
           ) : (
-            <VoterDashboard
-              onOpenBiometricEnroll={() => setBioEnrollOpen(true)}
-              onViewResults={(electionId) => setResultsModalElectionId(electionId)}
-            />
+            /* 3. Voter: If unverified, display dedicated verification status screen */
+            user.is_verified !== 1 ? (
+              <VerificationPendingView
+                user={user}
+                onRefresh={refreshUser}
+                onLogout={logout}
+              />
+            ) : (
+              <VoterDashboard
+                onOpenBiometricEnroll={() => setBioEnrollOpen(true)}
+                onViewResults={(electionId) => setResultsModalElectionId(electionId)}
+              />
+            )
           )}
         </main>
       </div>

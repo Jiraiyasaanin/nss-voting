@@ -65,7 +65,7 @@ authRouter.post('/register', async (req: Request, res: Response) => {
 
     db.prepare(`
       INSERT INTO users (id, student_id, email, full_name, department, batch_year, role, password_hash, is_active, is_verified, created_at, updated_at)
-      VALUES (?, ?, ?, ?, ?, ?, 'VOTER', ?, 1, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+      VALUES (?, ?, ?, ?, ?, ?, 'VOTER', ?, 1, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
     `).run(userId, student_id.toUpperCase(), email, full_name, department, batch_year, password_hash);
 
     logAudit({
@@ -73,7 +73,7 @@ authRouter.post('/register', async (req: Request, res: Response) => {
       action: 'USER_REGISTERED',
       resourceType: 'users',
       resourceId: userId,
-      details: { student_id: student_id.toUpperCase(), email, department },
+      details: { student_id: student_id.toUpperCase(), email, department, status: 'PENDING_OFFICER_VERIFICATION' },
       ipAddress: req.ip,
     });
 
@@ -90,13 +90,16 @@ authRouter.post('/register', async (req: Request, res: Response) => {
       batch_year,
       role: 'VOTER',
       is_active: 1,
-      is_verified: 1,
+      is_verified: 0,
+      rejection_reason: null,
+      verified_by: null,
+      verified_at: null,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };
 
     res.status(201).json({
-      message: 'Voter account created successfully. Please enroll your biometric passkey.',
+      message: 'Voter account registered successfully. Verification request sent to College Election Officer.',
       token,
       user,
       hasBiometrics: false,
@@ -167,6 +170,9 @@ authRouter.post('/login', async (req: Request, res: Response) => {
       role: user.role,
       is_active: user.is_active,
       is_verified: user.is_verified,
+      rejection_reason: user.rejection_reason || null,
+      verified_by: user.verified_by || null,
+      verified_at: user.verified_at || null,
       created_at: user.created_at,
       updated_at: user.updated_at,
     };

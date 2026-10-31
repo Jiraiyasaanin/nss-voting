@@ -5,6 +5,8 @@ import {
   ElectionResultsSummary,
   TurnoutMonitoringData,
   AdminOverviewMetrics,
+  OfficerStats,
+  VoterVerificationRecord,
 } from '../types/index.js';
 
 const RAW_API_URL = (import.meta.env.VITE_API_URL as string | undefined) || '';
@@ -268,6 +270,55 @@ class ApiService {
     return this.request<{ success: boolean; message: string }>('/audit-logs/system/clean-dummy-data', {
       method: 'POST',
       body: JSON.stringify({ password, wipeVoters }),
+    });
+  }
+
+  // --- Returning Officer Identity Verification APIs ---
+  async getOfficerStats() {
+    return this.request<OfficerStats>('/officer/stats');
+  }
+
+  async getOfficerVoters(params: {
+    status?: 'all' | 'pending' | 'verified' | 'rejected';
+    search?: string;
+    department?: string;
+    page?: number;
+    limit?: number;
+  } = {}) {
+    const q = new URLSearchParams();
+    if (params.status) q.append('status', params.status);
+    if (params.search) q.append('search', params.search);
+    if (params.department) q.append('department', params.department);
+    if (params.page) q.append('page', params.page.toString());
+    if (params.limit) q.append('limit', params.limit.toString());
+    return this.request<{ voters: VoterVerificationRecord[]; total: number; page: number; totalPages: number }>(
+      `/officer/voters?${q.toString()}`
+    );
+  }
+
+  async verifyVoterIdentity(voterId: string) {
+    return this.request<{ message: string; voter: VoterVerificationRecord }>(`/officer/verify-voter/${voterId}`, {
+      method: 'POST',
+    });
+  }
+
+  async rejectVoterIdentity(voterId: string, reason: string) {
+    return this.request<{ message: string; voter: VoterVerificationRecord }>(`/officer/reject-voter/${voterId}`, {
+      method: 'POST',
+      body: JSON.stringify({ reason }),
+    });
+  }
+
+  async resetVoterIdentity(voterId: string) {
+    return this.request<{ message: string; voter: VoterVerificationRecord }>(`/officer/reset-voter/${voterId}`, {
+      method: 'POST',
+    });
+  }
+
+  async batchVerifyVoters(voterIds: string[]) {
+    return this.request<{ message: string; updatedCount: number }>(`/officer/batch-verify`, {
+      method: 'POST',
+      body: JSON.stringify({ voterIds }),
     });
   }
 }

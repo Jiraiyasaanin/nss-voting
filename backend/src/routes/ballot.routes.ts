@@ -22,6 +22,18 @@ ballotRouter.post('/unlock-challenge', authenticateToken, requireVoter, async (r
       return;
     }
 
+    // 0. Verify Student Account Certification Status
+    if (voter.is_verified !== 1) {
+      const reason = voter.rejection_reason ? `: ${voter.rejection_reason}` : '';
+      res.status(403).json({
+        error: voter.is_verified === -1
+          ? `Ballot access denied: Your student identity was flagged/rejected by the Returning Officer${reason}. Please visit Room 102 to resolve.`
+          : 'Ballot access denied: Your student account is awaiting identity verification by the College Election Officer.',
+        is_verified: voter.is_verified,
+      });
+      return;
+    }
+
     const election = db.prepare(`SELECT * FROM elections WHERE id = ?`).get(electionId) as Election | undefined;
     if (!election) {
       res.status(404).json({ error: 'Election not found' });
@@ -92,6 +104,18 @@ ballotRouter.post('/verify-unlock', authenticateToken, requireVoter, async (req:
       return;
     }
 
+    // 0. Verify Student Account Certification Status
+    if (voter.is_verified !== 1) {
+      const reason = voter.rejection_reason ? `: ${voter.rejection_reason}` : '';
+      res.status(403).json({
+        error: voter.is_verified === -1
+          ? `Ballot access denied: Your student identity was flagged/rejected by the Returning Officer${reason}. Please visit Room 102 to resolve.`
+          : 'Ballot access denied: Your student account is awaiting identity verification by the College Election Officer.',
+        is_verified: voter.is_verified,
+      });
+      return;
+    }
+
     // Double check that voter hasn't already voted
     const existingParticipation = db.prepare(`
       SELECT 1 FROM voter_participation WHERE election_id = ? AND voter_id = ?
@@ -150,6 +174,11 @@ ballotRouter.post('/submit', authenticateToken, requireVoter, (req: Authenticate
 
   if (!electionId || !ballotToken || !candidateId) {
     res.status(400).json({ error: 'Missing required parameters: electionId, ballotToken, and candidateId.' });
+    return;
+  }
+
+  if (voter.is_verified !== 1) {
+    res.status(403).json({ error: 'Ballot submission denied: Student account is not certified/verified.' });
     return;
   }
 

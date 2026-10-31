@@ -1,10 +1,21 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext.js';
-import { Shield, Fingerprint, LogOut, User as UserIcon, CheckCircle2, AlertTriangle, KeyRound } from 'lucide-react';
+import {
+  Shield,
+  Fingerprint,
+  LogOut,
+  User as UserIcon,
+  CheckCircle2,
+  AlertTriangle,
+  KeyRound,
+  ShieldCheck,
+  Clock,
+  UserCheck,
+} from 'lucide-react';
 
 interface NavbarProps {
-  activeView: 'voter' | 'admin';
-  setActiveView: (view: 'voter' | 'admin') => void;
+  activeView: 'voter' | 'admin' | 'officer';
+  setActiveView: (view: 'voter' | 'admin' | 'officer') => void;
   onOpenBiometricEnroll: () => void;
   onOpenRecovery: () => void;
 }
@@ -15,7 +26,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenBiometricEnroll,
   onOpenRecovery,
 }) => {
-  const { user, hasBiometrics, isAdmin, logout } = useAuth();
+  const { user, hasBiometrics, isAdmin, isOfficer, logout } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
@@ -80,25 +91,65 @@ export const Navbar: React.FC<NavbarProps> = ({
                   <Shield className="w-3.5 h-3.5 text-orange-400" />
                   Admin HQ
                 </button>
+                <button
+                  onClick={() => setActiveView('officer')}
+                  className={`px-3 py-1.5 text-xs font-semibold rounded-md transition flex items-center gap-1.5 ${
+                    activeView === 'officer'
+                      ? 'bg-amber-600 text-white shadow-xs'
+                      : 'text-stone-600 hover:text-stone-900'
+                  }`}
+                >
+                  <ShieldCheck className="w-3.5 h-3.5 text-amber-200" />
+                  Officer Desk
+                </button>
               </div>
             )}
 
-            {/* Biometric Status Indicator */}
+            {/* Officer Exclusive Badge */}
+            {isOfficer && (
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-orange-50 border border-orange-200 rounded-xl text-xs font-bold text-orange-900 shadow-2xs">
+                <ShieldCheck className="w-4 h-4 text-orange-600" />
+                <span>Identity Verification Desk</span>
+              </div>
+            )}
+
+            {/* Voter Verification & Biometric Status Indicators */}
             {user?.role === 'VOTER' && (
-              hasBiometrics ? (
-                <div className="hidden md:flex items-center gap-1.5 px-3 py-1 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-full text-xs font-medium">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                  <span>Passkey Verified</span>
-                </div>
-              ) : (
-                <button
-                  onClick={onOpenBiometricEnroll}
-                  className="hidden md:flex items-center gap-1.5 px-3 py-1 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 rounded-full text-xs font-medium transition cursor-pointer"
-                >
-                  <AlertTriangle className="w-3.5 h-3.5 text-amber-600" />
-                  <span>Enroll Biometrics</span>
-                </button>
-              )
+              <>
+                {user.is_verified === 1 ? (
+                  <div className="hidden sm:flex items-center gap-1.5 px-3 py-1 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-full text-xs font-medium">
+                    <UserCheck className="w-3.5 h-3.5 text-emerald-600" />
+                    <span>Verified Student ID</span>
+                  </div>
+                ) : user.is_verified === 0 ? (
+                  <div className="hidden sm:flex items-center gap-1.5 px-3 py-1 bg-amber-50 text-amber-800 border border-amber-300 rounded-full text-xs font-medium">
+                    <Clock className="w-3.5 h-3.5 text-amber-600 animate-spin" style={{ animationDuration: '4s' }} />
+                    <span>Pending Verification</span>
+                  </div>
+                ) : (
+                  <div className="hidden sm:flex items-center gap-1.5 px-3 py-1 bg-rose-50 text-rose-800 border border-rose-200 rounded-full text-xs font-medium">
+                    <AlertTriangle className="w-3.5 h-3.5 text-rose-600" />
+                    <span>Identity Flagged</span>
+                  </div>
+                )}
+
+                {user.is_verified === 1 && (
+                  hasBiometrics ? (
+                    <div className="hidden md:flex items-center gap-1.5 px-3 py-1 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-full text-xs font-medium">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                      <span>Passkey Enrolled</span>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={onOpenBiometricEnroll}
+                      className="hidden md:flex items-center gap-1.5 px-3 py-1 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 rounded-full text-xs font-medium transition cursor-pointer"
+                    >
+                      <AlertTriangle className="w-3.5 h-3.5 text-amber-600" />
+                      <span>Enroll Biometrics</span>
+                    </button>
+                  )
+                )}
+              </>
             )}
 
             {/* User Dropdown */}
@@ -106,7 +157,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               <div className="relative">
                 <button
                   onClick={() => setMenuOpen(!menuOpen)}
-                  className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-stone-100 transition border border-transparent hover:border-stone-200 text-left"
+                  className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-stone-100 transition border border-transparent hover:border-stone-200 text-left cursor-pointer"
                 >
                   <div className="w-8 h-8 rounded-full bg-orange-100 text-orange-800 font-bold flex items-center justify-center text-xs border border-orange-300">
                     {user.full_name.charAt(0)}
@@ -129,23 +180,25 @@ export const Navbar: React.FC<NavbarProps> = ({
                     </div>
 
                     <div className="py-1">
-                      <button
-                        onClick={() => {
-                          setMenuOpen(false);
-                          onOpenBiometricEnroll();
-                        }}
-                        className="w-full text-left px-4 py-2 text-xs text-stone-700 hover:bg-stone-50 flex items-center gap-2"
-                      >
-                        <Fingerprint className="w-4 h-4 text-orange-600" />
-                        <span>Manage Device Biometrics</span>
-                      </button>
+                      {user.role === 'VOTER' && user.is_verified === 1 && (
+                        <button
+                          onClick={() => {
+                            setMenuOpen(false);
+                            onOpenBiometricEnroll();
+                          }}
+                          className="w-full text-left px-4 py-2 text-xs text-stone-700 hover:bg-stone-50 flex items-center gap-2 cursor-pointer"
+                        >
+                          <Fingerprint className="w-4 h-4 text-orange-600" />
+                          <span>Manage Device Biometrics</span>
+                        </button>
+                      )}
 
                       <button
                         onClick={() => {
                           setMenuOpen(false);
                           onOpenRecovery();
                         }}
-                        className="w-full text-left px-4 py-2 text-xs text-stone-700 hover:bg-stone-50 flex items-center gap-2"
+                        className="w-full text-left px-4 py-2 text-xs text-stone-700 hover:bg-stone-50 flex items-center gap-2 cursor-pointer"
                       >
                         <KeyRound className="w-4 h-4 text-blue-600" />
                         <span>Security & Device Reset</span>
@@ -158,7 +211,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                           setMenuOpen(false);
                           logout();
                         }}
-                        className="w-full text-left px-4 py-2 text-xs text-red-600 hover:bg-red-50 flex items-center gap-2 font-medium"
+                        className="w-full text-left px-4 py-2 text-xs text-red-600 hover:bg-red-50 flex items-center gap-2 font-medium cursor-pointer"
                       >
                         <LogOut className="w-4 h-4" />
                         <span>Sign Out</span>

@@ -33,28 +33,34 @@ export async function seedDatabase() {
 
   // Admin and Officer
   const insertUser = db.prepare(`
-    INSERT INTO users (id, student_id, email, full_name, department, batch_year, role, password_hash, is_active, is_verified, created_at, updated_at)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+    INSERT INTO users (id, student_id, email, full_name, department, batch_year, role, password_hash, is_active, is_verified, rejection_reason, verified_by, verified_at, created_at, updated_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
   `);
 
-  insertUser.run(adminId, 'NSS-ADMIN-01', 'admin@nss.edu', 'Prof. Rajesh Kulkarni (Chief Election Officer)', 'Election Commission', 2020, 'ADMIN', adminPassHash);
-  insertUser.run(officerId, 'NSS-OFFICER-01', 'officer@nss.edu', 'Dr. Meenakshi Sundaram (Returning Officer)', 'Student Affairs', 2021, 'ELECTION_OFFICER', officerPassHash);
+  insertUser.run(adminId, 'NSS-ADMIN-01', 'admin@nss.edu', 'Prof. Rajesh Kulkarni (Chief Election Officer)', 'Election Commission', 2020, 'ADMIN', adminPassHash, 1, null, officerId, new Date().toISOString());
+  insertUser.run(officerId, 'NSS-OFFICER-01', 'officer@nss.edu', 'Dr. Meenakshi Sundaram (Returning Officer)', 'Student Affairs', 2021, 'ELECTION_OFFICER', officerPassHash, 1, null, officerId, new Date().toISOString());
 
   // Student Voters
   const studentData = [
-    { student_id: 'NSS-2026-CS-001', email: 'aarav.sharma@nss.edu', full_name: 'Aarav Sharma', department: 'Computer Science', batch_year: 2026 },
-    { student_id: 'NSS-2026-CS-002', email: 'diya.patel@nss.edu', full_name: 'Diya Patel', department: 'Computer Science', batch_year: 2026 },
-    { student_id: 'NSS-2026-ME-003', email: 'rohan.verma@nss.edu', full_name: 'Rohan Verma', department: 'Mechanical Engineering', batch_year: 2026 },
-    { student_id: 'NSS-2026-EE-004', email: 'ananya.iyer@nss.edu', full_name: 'Ananya Iyer', department: 'Electrical Engineering', batch_year: 2026 },
-    { student_id: 'NSS-2026-CE-005', email: 'kabir.singh@nss.edu', full_name: 'Kabir Singh', department: 'Civil Engineering', batch_year: 2026 },
-    { student_id: 'NSS-2026-CS-006', email: 'ishaan.gupta@nss.edu', full_name: 'Ishaan Gupta', department: 'Computer Science', batch_year: 2026 },
-    { student_id: 'NSS-2026-BT-007', email: 'tanya.reddy@nss.edu', full_name: 'Tanya Reddy', department: 'Biotechnology', batch_year: 2026 },
+    // Verified Students (eligible to vote immediately)
+    { student_id: 'NSS-2026-CS-001', email: 'aarav.sharma@nss.edu', full_name: 'Aarav Sharma', department: 'Computer Science', batch_year: 2026, is_verified: 1, rejection_reason: null, verified_by: officerId },
+    { student_id: 'NSS-2026-CS-002', email: 'diya.patel@nss.edu', full_name: 'Diya Patel', department: 'Computer Science', batch_year: 2026, is_verified: 1, rejection_reason: null, verified_by: officerId },
+    { student_id: 'NSS-2026-ME-003', email: 'rohan.verma@nss.edu', full_name: 'Rohan Verma', department: 'Mechanical Engineering', batch_year: 2026, is_verified: 1, rejection_reason: null, verified_by: officerId },
+    
+    // Pending Students (awaiting officer verification)
+    { student_id: 'NSS-2026-EE-004', email: 'ananya.iyer@nss.edu', full_name: 'Ananya Iyer', department: 'Electrical Engineering', batch_year: 2026, is_verified: 0, rejection_reason: null, verified_by: null },
+    { student_id: 'NSS-2026-CE-005', email: 'kabir.singh@nss.edu', full_name: 'Kabir Singh', department: 'Civil Engineering', batch_year: 2026, is_verified: 0, rejection_reason: null, verified_by: null },
+    { student_id: 'NSS-2026-CS-006', email: 'ishaan.gupta@nss.edu', full_name: 'Ishaan Gupta', department: 'Computer Science', batch_year: 2026, is_verified: 0, rejection_reason: null, verified_by: null },
+    
+    // Flagged / Rejected Student (e.g. invalid roll number)
+    { student_id: 'NSS-2026-BT-007', email: 'tanya.reddy@nss.edu', full_name: 'Tanya Reddy', department: 'Biotechnology', batch_year: 2026, is_verified: -1, rejection_reason: 'Roll number does not match current university semester roster', verified_by: officerId },
   ];
 
   const studentIds: string[] = [];
   for (const s of studentData) {
     const sId = uuidv4();
-    insertUser.run(sId, s.student_id, s.email, s.full_name, s.department, s.batch_year, 'VOTER', voterPassHash);
+    const verifiedAt = s.is_verified === 1 || s.is_verified === -1 ? new Date().toISOString() : null;
+    insertUser.run(sId, s.student_id, s.email, s.full_name, s.department, s.batch_year, 'VOTER', voterPassHash, s.is_verified, s.rejection_reason, s.verified_by, verifiedAt);
     studentIds.push(sId);
   }
 

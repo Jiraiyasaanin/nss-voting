@@ -10,7 +10,10 @@ export interface User {
   role: UserRole;
   password_hash: string;
   is_active: number;
-  is_verified: number;
+  is_verified: number; // 0 = Pending, 1 = Approved, -1 = Rejected
+  rejection_reason?: string | null;
+  verified_by?: string | null;
+  verified_at?: string | null;
   created_at: string;
   updated_at: string;
 }

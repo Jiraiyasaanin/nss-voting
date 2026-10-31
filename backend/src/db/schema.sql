@@ -14,7 +14,10 @@ CREATE TABLE IF NOT EXISTS users (
     role TEXT NOT NULL CHECK(role IN ('VOTER', 'ADMIN', 'ELECTION_OFFICER')),
     password_hash TEXT NOT NULL,
     is_active INTEGER NOT NULL DEFAULT 1,     -- Admin can activate / deactivate
-    is_verified INTEGER NOT NULL DEFAULT 1,   -- Identity registry verification status
+    is_verified INTEGER NOT NULL DEFAULT 0,   -- Identity verification status: 0 = Pending, 1 = Approved, -1 = Rejected
+    rejection_reason TEXT,                    -- Reason provided if flagged or rejected by Election Officer
+    verified_by TEXT,                         -- Officer user ID who certified or reviewed the account
+    verified_at DATETIME,                     -- Timestamp when verification decision occurred
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
