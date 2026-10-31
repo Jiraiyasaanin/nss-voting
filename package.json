@@ -1,0 +1,32 @@
+{
+  "name": "nss-voting",
+  "version": "1.0.0",
+  "description": "Secure Biometric-Based Digital Voting System",
+  "main": "index.js",
+  "scripts": {
+    "dev": "concurrently -n \"API,WEB\" -c \"blue.bold,green.bold\" \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:backend": "cd backend && npm run dev",
+    "dev:frontend": "cd frontend && npm run dev",
+    "build": "npm run build:backend && npm run build:frontend",
+    "build:backend": "cd backend && npm run build",
+    "build:frontend": "cd frontend && npm run build",
+    "seed": "cd backend && npm run seed",
+    "clean": "cd backend && npm run clean",
+    "wipe": "cd backend && npm run wipe",
+    "test": "cd backend && npm test",
+    "install:all": "npm install && cd backend && npm install && cd ../frontend && npm install"
+  },
+  "keywords": [
+    "voting",
+    "biometric",
+    "webauthn",
+    "fido2",
+    "ballot",
+    "nss"
+  ],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}

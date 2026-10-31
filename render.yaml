@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: nss-voting-api
+    runtime: node
+    plan: free
+    region: oregon
+    buildCommand: cd backend && npm install && npm run build
+    startCommand: cd backend && npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: JWT_SECRET
+        generateValue: true
+      - key: BALLOT_TOKEN_SECRET
+        generateValue: true
+      - key: RP_NAME
+        value: "NSS Collegiate Digital Voting System"
+      - key: RP_ID
+        sync: false
+      - key: RP_ORIGIN
+        sync: false

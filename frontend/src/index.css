@@ -1,0 +1,51 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --font-heading: 'Outfit', sans-serif;
+    --font-body: 'Plus Jakarta Sans', sans-serif;
+  }
+
+  body {
+    font-family: var(--font-body);
+    background-color: #FAF8F5;
+    color: #1c1917;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading);
+  }
+}
+
+/* Custom Indian Tricolour and EVM Ballot Accents */
+.tricolour-bar {
+  background: linear-gradient(90deg, #FF9933 0%, #FF9933 33.3%, #FFFFFF 33.3%, #FFFFFF 66.6%, #138808 66.6%, #138808 100%);
+  height: 4px;
+  width: 100%;
+}
+
+.chakra-spin-slow {
+  animation: spin 30s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Custom EVM Tactile Blue Button */
+.evm-btn {
+  background: radial-gradient(circle at 30% 30%, #2563eb, #1d4ed8 70%, #1e40af);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2), inset 0 2px 2px rgba(255, 255, 255, 0.3), inset 0 -2px 2px rgba(0, 0, 0, 0.4);
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.evm-btn:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.2), inset 0 1px 1px rgba(0, 0, 0, 0.6);
+}
+
+.evm-btn-selected {
+  background: radial-gradient(circle at 30% 30%, #16a34a, #15803d 70%, #166534);
+  box-shadow: 0 0 15px rgba(22, 163, 74, 0.6), inset 0 2px 2px rgba(255, 255, 255, 0.4);
+}
