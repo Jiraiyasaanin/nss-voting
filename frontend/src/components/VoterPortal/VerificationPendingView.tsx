@@ -259,3 +259,4 @@ export const VerificationPendingView: React.FC<VerificationPendingViewProps> = (
     </div>
   );
 };
+
